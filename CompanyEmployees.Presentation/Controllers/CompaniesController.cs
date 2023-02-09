@@ -11,6 +11,7 @@ namespace CompanyEmployees.Presentation.Controllers;
 
 [Route("api/companies")]
 [ApiController]
+[ApiExplorerSettings(GroupName = "v1")]
 //[ResponseCache(CacheProfileName = "120SecondsDuration")]
 [OutputCache(PolicyName = "120SecondsDuration")]
 public class CompaniesController : ControllerBase
@@ -19,12 +20,17 @@ public class CompaniesController : ControllerBase
 
     public CompaniesController(IServiceManager service) => _service = service;
 
+    /// <summary>
+    /// Gets the list of all companies
+    /// </summary>
+    /// <returns>The companies list</returns>
     [HttpGet(Name = "GetCompanies")]
-    [Authorize(Roles = "Manager")]
     [EnableRateLimiting("SpecificPolicy")]
+    [Authorize(Roles = "Manager")]
     public async Task<IActionResult> GetCompanies()
     {
         var companies = await _service.CompanyService.GetAllCompaniesAsync(trackChanges: false);
+
         return Ok(companies);
     }
 
@@ -52,7 +58,18 @@ public class CompaniesController : ControllerBase
         return Ok(companies);
     }
 
+    /// <summary>
+    /// Creates a newly created company
+    /// </summary>
+    /// <param name="company"></param>
+    /// <returns>A newly created company</returns>
+    /// <response code="201">Returns the newly created item</response>
+    /// <response code="400">If the item is null</response>
+    /// <response code="422">If the model is invalid</response>
     [HttpPost(Name = "CreateCompany")]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(422)]
     [ServiceFilter(typeof(ValidationFilterAttribute))]
     public async Task<IActionResult> CreateCompany([FromBody] CompanyForCreationDto company)
     {
